@@ -1,5 +1,6 @@
 build:
 mvn clean install
+(if mysql database not setted up, use -DskipTest) 
 
 deploy:
 docker-compose up

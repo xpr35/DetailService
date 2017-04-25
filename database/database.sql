@@ -1,5 +1,5 @@
-CREATE DATABASE test;
-USE test;
+CREATE DATABASE DetailService;
+USE DetailService;
 CREATE TABLE `Cell` (
   `cell_id` int(11) NOT NULL,
   `ctn` int(11) NOT NULL,
