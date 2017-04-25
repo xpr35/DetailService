@@ -1,16 +1,18 @@
-web:
-  build: .
-  ports:
-   - "8888:8080"
-  volumes:
-   - /usr/local/tomcat/webapps
-  links:
-   - database
-database:
-  image: mysql
-  environment:
-    MYSQL_ROOT_PASSWORD:
-  ports:
-    - "3310:3306"
-  volumes:
-    - /var/lib/mysql
+version: "2"
+services:
+  database:
+    image: mysql
+    environment:
+     - MYSQL_ALLOW_EMPTY_PASSWORD=1
+    ports:
+     - "3310:3306"
+    volumes:
+     - /var/lib/mysql
+  web:
+    build: .
+    ports:
+     - "8888:8080"
+    depends_on:
+     - database
+    volumes:
+     - /usr/local/tomcat/webapps
