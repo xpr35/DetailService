@@ -8,11 +8,10 @@ services:
      - "3310:3306"
     volumes:
      - /var/lib/mysql
+     - ./database:/docker-entrypoint-initdb.d
   web:
     build: .
     ports:
      - "8888:8080"
     depends_on:
      - database
-    volumes:
-     - /usr/local/tomcat/webapps
