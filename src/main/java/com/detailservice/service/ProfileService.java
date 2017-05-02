@@ -33,11 +33,11 @@ public class ProfileService implements Serializable {
         this.executorService = Executors.newFixedThreadPool(maxThreads);
     }
 
-    public Future<Profile> get(Cell cell) {
+    public Future<Profile> getProfile(Cell cell) {
         return executorService.submit(new ProfileRequesterWorker(cell.getCtn()));
     }
 
-    public void requestProfile(Long ctn) throws Exception {
+    private void requestRandomProfile(Long ctn) throws Exception {
         StringBuilder response = new StringBuilder();
         Gson gson = new Gson();
         int attempts = 0;
@@ -73,9 +73,9 @@ public class ProfileService implements Serializable {
         this.randomProfile = gson.fromJson(response.toString(), RandomProfile.class);
     }
 
-    public Profile getProfile(Long ctn) {
+    private Profile getRandomProfile(Long ctn) {
         try {
-            this.requestProfile(ctn);
+            this.requestRandomProfile(ctn);
         } catch (Exception e) {
             log.warn("Couldn't request profile");
         }
@@ -107,7 +107,7 @@ public class ProfileService implements Serializable {
         }
 
         public Profile call() {
-            return getProfile(this.ctn);
+            return getRandomProfile(this.ctn);
         }
     }
 }
