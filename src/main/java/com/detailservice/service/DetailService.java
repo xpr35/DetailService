@@ -8,14 +8,12 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import javax.persistence.PersistenceException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class DetailService {
 
     private static final Logger log = LogManager.getLogger(DetailService.class);
-
-    private static String profileServiceURL = "https://randomuser.me/api/?phone=1111111111&inc=name,email";
 
     public Profiles getDetails(Long cellId) throws PersistenceException, InterruptedException {
 
@@ -23,38 +21,15 @@ public class DetailService {
         final Profiles profiles = new Profiles();
 
         List<Cell> cells = dao.getUsers(cellId);
+        ProfileService profileService = new ProfileService(15, 5);
 
-        List<Thread> threads = new ArrayList<Thread>();
-
-        for (Cell c : cells) {
-            class ProfileRequesterThread implements Runnable {
-                private Cell cell;
-                private Profile profile;
-
-                ProfileRequesterThread(Cell cell) {
-                    this.cell = cell;
-                }
-
-                public void run() {
-                    ProfileService randomProfile = new ProfileService(profileServiceURL, 5);
-                    try {
-                        randomProfile.requestProfile();
-                    } catch (Exception e) {
-                        log.warn("Couldn't request profile for " + this.cell.getCtn());
-                    }
-                    this.profile = randomProfile.getProfile();
-                    this.profile.setCtn(cell.getCtn());
-                    profiles.addProfile(this.profile);
-                }
+        for (Cell cell : cells) {
+            try {
+                Profile pr = profileService.get(cell).get();
+                profiles.addProfile(pr);
+            } catch (ExecutionException e) {
+                log.error("Execution exception while getting profile: " + e.getMessage());
             }
-
-            Thread profileThread = new Thread(new ProfileRequesterThread(c));
-            profileThread.start();
-            threads.add(profileThread);
-        }
-
-        for (Thread thread : threads) {
-            thread.join();
         }
         return profiles;
     }
