@@ -21,7 +21,6 @@ public class ProfileService implements Serializable {
     private static final Logger log = LogManager.getLogger(ProfileService.class);
     private static final Object lock = new Object();
     private int maxAttemptsNumber;
-    private RandomProfile randomProfile;
     private ExecutorService executorService;
 
     private String getUrl(Long ctn) {
@@ -37,7 +36,7 @@ public class ProfileService implements Serializable {
         return executorService.submit(new ProfileRequesterWorker(cell.getCtn()));
     }
 
-    private void requestRandomProfile(Long ctn) throws Exception {
+    private RandomProfile requestRandomProfile(Long ctn) throws Exception {
         StringBuilder response = new StringBuilder();
         Gson gson = new Gson();
         int attempts = 0;
@@ -70,33 +69,27 @@ public class ProfileService implements Serializable {
             }
             in.close();
         }
-        this.randomProfile = gson.fromJson(response.toString(), RandomProfile.class);
+        return gson.fromJson(response.toString(), RandomProfile.class);
     }
 
     private Profile getRandomProfile(Long ctn) {
+        RandomProfile randomProfile = new RandomProfile();
         try {
-            this.requestRandomProfile(ctn);
+            randomProfile = requestRandomProfile(ctn);
         } catch (Exception e) {
             log.warn("Couldn't request profile");
         }
         Profile profile = new Profile();
-        if (this.randomProfile == null || this.randomProfile.getResults() == null) {
+        if (randomProfile == null || randomProfile.getResults() == null) {
             log.error("Couldn't get results from Profile Service");
             return new Profile();
         }
 
-        RandomProfile.Results.Name name = this.randomProfile.getResults()[0].getName();
+        RandomProfile.Results.Name name = randomProfile.getResults()[0].getName();
         profile.setName(name.getTitle() + " " + name.getFirst() + " " + name.getLast());
-        profile.setEmail(this.randomProfile.getResults()[0].getEmail());
+        profile.setEmail(randomProfile.getResults()[0].getEmail());
         profile.setCtn(ctn);
         return profile;
-    }
-
-    @Override
-    public String toString() {
-        return "ProfileService{" +
-                "randomProfile=" + randomProfile +
-                '}';
     }
 
     class ProfileRequesterWorker implements Callable {
