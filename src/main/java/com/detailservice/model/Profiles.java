@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Profiles {
-    private int total;
+    private volatile int total;
 
     private List<Profile> results;
 
